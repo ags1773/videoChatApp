@@ -1,0 +1,17 @@
+{
+  "name": "videochatapp",
+  "version": "1.0.0",
+  "description": "webRTC based video calling and file sharing app",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "webRTC",
+    "Video-call",
+    "chat",
+    "file-share"
+  ],
+  "author": "Amogh",
+  "license": "ISC"
+}
