@@ -1,23 +1,17 @@
-WebRTC provides browsers and mobile applications with Real-Time Communications (RTC) capabilities via simple APIs
+Signaling:
+- WebRTC can't create P2P connections without a some sort of a server in the middle
+- This is called signal channel or signaling service
+- This is any sort of communication channel to exchange info to set up connection
+- Info to exchange is the Offer and the Answer which contains SDP (Session Description Protocol)
+- Offer contains caller's proposed configuration for the call (codec, source address, and timing information of audio and video)
+- Answer contains the callee's description of his end 
+- This way, both exchange the information needed in order to exchange media data
+- This exchange is handled using ICE (Interactive Connectivity Estabilishment)
+- ICE is a protocol which lets devices use an intermediary to exchange offer/answer even if they're
+  separated by NAT
 
-WebRTC enables peer-to-peer (direct from one user to another, without a server) data sharing
-
-APIs for WebRTC:
-1) getUserMedia : take input from user (Mic/screen/webcam)
-2) Peer Connection : 
-        - encode/decode media
-        - send it over network
-        - take care of NAT transversal
-        - other stuff
-3) Data channel - browser to browser communication
-
-
-1) getUserMedia:
-- HTML5 made it possible to access the device hardware by exposing high level Javascript APIs
-    examples: - Geolocation (GPS)
-              - WebGL (GPU)
-              - Web audio API
-
-- navigator.mediaDevices.getUserMedia() allows web apps to use the device's webcam and microphone
-- video.srcObject = stream : Instead of feeding a URL of a media file, we give the <video> a MediaStream
-- also <video autoplay> 'autoplay' is enabled, so <video> won't freeze after 1st frame
+- Each peer now keeps two descriptions in hand:
+  local description: describing itself
+  remote description: describing other person
+- this process is performed initially when the call is estabilished, and also when the calls config 
+  needs to change
