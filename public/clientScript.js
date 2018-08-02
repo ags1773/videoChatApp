@@ -32,7 +32,9 @@ const init = () => {
       {'iceServers': ICE_SERVERS}
     )
     // peerConnection.addStream(localMediaStream)
-    peerConnection.addTrack(null, localMediaStream)
+    localMediaStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localMediaStream)
+    })
     peer[config.peer_id] = peerConnection
 
     peerConnection.onicecandidate = (event) => {
@@ -47,6 +49,17 @@ const init = () => {
       }
     }
 
+    // Called by the WebRTC layer when events occur on the media tracks
+    // on our WebRTC call. This includes when streams are added to and
+    // removed from the call.
+    //
+    // track events include the following fields:
+    //
+    // RTCRtpReceiver       receiver
+    // MediaStreamTrack     track
+    // MediaStream[]        streams
+    // RTCRtpTransceiver    transceiver
+
     peerConnection.ontrack = (event) => {
       console.log('ontrack (old: onAddStream) event')
       const video = document.createElement('video')
@@ -55,7 +68,8 @@ const init = () => {
       video.setAttribute('controls', '')
       peerMediaElement[config.peer_id] = video
       document.body.appendChild(video)
-      video.srcObject = event.stream
+      // video.srcObject = event.stream
+      video.srcObject = event.streams[0]
     }
 
     if (config.should_create_offer) {
