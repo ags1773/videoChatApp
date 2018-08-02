@@ -37,13 +37,22 @@ io.on('connection', function (socket) {
     // MAYBE?? remove socket entry from 'sockets' obj
   })
 
+  // sends offer/answer from one peer to another
   socket.on('relaySessionDescription', function (config) {
     let peerId = config.peer_id
     let sessionDescription = config.session_description
-    console.log(`[ ${socket.id} ] relaying session description to [ ${peerId} ]`, sessionDescription)
-
+    console.info(`Server relaying Peer [ ${socket.id} ]'s '${sessionDescription.type}' to Peer [ ${peerId} ]`)
     if (peerId in sockets) {
       sockets[peerId].emit('sessionDescription', {'peer_id': socket.id, 'session_description': sessionDescription})
+    }
+  })
+
+  socket.on('relayICECandidate', function (config) {
+    let peerId = config.peer_id
+    let iceCandidate = config.ice_candidate
+    console.info(`Server relaying Peer [ ${socket.id} ]'s ICE candidate to Peer [ ${peerId} ]`)
+    if (peerId in sockets) {
+      sockets[peerId].emit('iceCandidate', {'peer_id': socket.id, 'ice_candidate': iceCandidate})
     }
   })
 })

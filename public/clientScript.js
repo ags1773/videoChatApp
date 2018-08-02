@@ -45,6 +45,10 @@ const init = () => {
             'sdpMLineIndex': event.candidate.sdpMLineIndex,
             'candidate': event.candidate.candidate
           }
+          // 'ice_candidate': new RTCIceCandidate({
+          //   'sdpMLineIndex': event.candidate.sdpMLineIndex,
+          //   'candidate': event.candidate.candidate
+          // })
         })
       }
     }
@@ -72,6 +76,8 @@ const init = () => {
       video.srcObject = event.streams[0]
     }
 
+    // localDescription, created after fulfilling createOffer()'s promise, describes how the connection is
+    // configured on the caller's side. This is relayed to the callee using signalling server
     if (config.should_create_offer) {
       console.log('Creating RTC offer to ', config.peer_id)
       peerConnection.createOffer()
@@ -100,7 +106,44 @@ const init = () => {
   // then the answerer sends one back (with type "answer").
 
   socket.on('sessionDescription', function (config) {
-    console.log('Remote description recieved', config)
+    console.log('Remote sessionDescription recieved')
+    const remotePeerId = config.peer_id
+    const remotePeerDescription = config.session_description
+    const remotePeer = peer[remotePeerId]
+
+    const desc = new RTCSessionDescription(remotePeerDescription)
+    remotePeer.setRemoteDescription(desc)
+      .then(() => {
+        console.log('setRemoteDescription succeeded')
+        if (remotePeerDescription.type === 'offer') {
+          console.log('Creating Answer...')
+          return remotePeer.createAnswer()
+        }
+      })
+      .then(localDescription => {
+        console.log('Answer description is', localDescription)
+        remotePeer.setLocalDescription(localDescription)
+          .then(() => {
+            socket.emit('relaySessionDescription',
+              {
+                'peer_id': remotePeerId,
+                'session_description': localDescription
+              }
+            )
+            console.log('Answer setLocalDescription succeeded')
+          })
+          .catch(err => console.error('Answer setLocalDescription Failed!', err))
+      })
+      .catch(err => console.error('Error in setRemoteDescription / Creating answer', err))
+  })
+
+  // The offerer will send a number of ICE Candidate blobs to the answerer so they
+  // can begin trying to find the best path to one another on the net.
+
+  socket.on('iceCandidate', function (config) {
+    const remotePeer = peer[config.peer_id]
+    const iceCandidate = config.ice_candidate
+    remotePeer.addIceCandidate(new RTCIceCandidate(iceCandidate))
   })
 
   socket.on('disconnect', () => {
