@@ -1,4 +1,4 @@
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 const express = require('express')
 const socket = require('socket.io')
 const cors = require('cors')
@@ -14,7 +14,6 @@ const sockets = {}
 io.on('connection', function (socket) {
   console.log('Socket connection estabilished!')
 
-  // on connection, add the socket to the 'sockets' obj
   sockets[socket.id] = socket
   console.log(`${socket.id} connection accepted`)
 

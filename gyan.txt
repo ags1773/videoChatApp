@@ -1,0 +1,14 @@
+Sequence Of Events
+
+1) A estabilishes socket connection with server
+2) Server makes note of A's socket ID and socket in 'sockets' object
+3) Server emits a 'connect' event 
+4) On recieving server's 'connect' event, A emits a 'join' event
+5) On getting A's 'join', nothing happens (waiting for B to connect)  
+
+6) When B connects, steps 1,2,3,4 happen
+7) On getting B's 'join', server now has two key:value pairs in the 'sockets' object
+8) - server sends A an 'addPeer' event with {B's socket ID, should_create_offer: false}
+   - server sends B an 'addPeer' event with {A's socket ID, should_create_offer: true}
+9) A, on getting the 'addPeer' event from server, does the following:
+    - 

@@ -11,7 +11,6 @@ const ICE_SERVERS = [
 ]
 
 // **** Global ****
-// let localMediaStream = null
 let socket
 let localMediaStream
 let peer = {}
@@ -33,53 +32,13 @@ const init = () => {
     const peerConnection = new RTCPeerConnection(
       {'iceServers': ICE_SERVERS}
     )
-    // peerConnection.addStream(localMediaStream)
     localMediaStream.getTracks().forEach(track => {
+      console.log('track', track)
       peerConnection.addTrack(track, localMediaStream)
     })
     peer[config.peer_id] = peerConnection
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('relayICECandidate', {
-          'peer_id': config.peer_id,
-          'ice_candidate': {
-            'sdpMLineIndex': event.candidate.sdpMLineIndex,
-            'candidate': event.candidate.candidate
-          }
-          // 'ice_candidate': new RTCIceCandidate({
-          //   'sdpMLineIndex': event.candidate.sdpMLineIndex,
-          //   'candidate': event.candidate.candidate
-          // })
-        })
-      }
-    }
-
-    // Called by the WebRTC layer when events occur on the media tracks
-    // on our WebRTC call. This includes when streams are added to and
-    // removed from the call.
-
-    // track events include the following fields:
-
-    // RTCRtpReceiver       receiver
-    // MediaStreamTrack     track
-    // MediaStream[]        streams
-    // RTCRtpTransceiver    transceiver
-
-    peerConnection.ontrack = (event) => {
-      console.log('ontrack (old: onAddStream) event')
-      const video = document.createElement('video')
-      video.setAttribute('autoplay', '')
-      video.setAttribute('muted', 'true') // mute by default
-      video.setAttribute('controls', '')
-      peerMediaElement[config.peer_id] = video
-      document.body.appendChild(video)
-      // video.srcObject = event.stream
-      video.srcObject = event.streams[0]
-    }
-
-    // localDescription, created after fulfilling createOffer()'s promise, describes how the connection is
-    // configured on the caller's side. This is relayed to the callee using signalling server
+    // localDescription describes how the connection is configured
     if (config.should_create_offer) {
       console.log('Creating RTC offer to ', config.peer_id)
       peerConnection.createOffer()
@@ -100,6 +59,38 @@ const init = () => {
         .catch(error => {
           console.error('Error sending offer: ', error)
         })
+    }
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('relayICECandidate', {
+          'peer_id': config.peer_id,
+          'ice_candidate': {
+            'sdpMLineIndex': event.candidate.sdpMLineIndex,
+            'candidate': event.candidate.candidate
+          }
+        })
+      }
+    }
+
+    // 'ontrack' is called by the WebRTC layer when events occur on the media tracks on our WebRTC call.
+    // This includes when streams are added to and removed from the call.
+    // track events include the following fields:
+
+    // RTCRtpReceiver       receiver
+    // MediaStreamTrack     track
+    // MediaStream[]        streams
+    // RTCRtpTransceiver    transceiver
+
+    peerConnection.ontrack = (event) => {
+      console.log('ontrack (old: onAddStream) event')
+      const video = document.createElement('video')
+      video.setAttribute('autoplay', '')
+      video.setAttribute('muted', 'false')
+      video.setAttribute('controls', '')
+      peerMediaElement[config.peer_id] = video
+      document.body.appendChild(video)
+      video.srcObject = event.streams[0]
     }
   })
 
@@ -174,7 +165,7 @@ function setupLocalMedia (callback) {
 
     const video = document.createElement('video')
     video.setAttribute('autoplay', '')
-    video.setAttribute('muted', 'true') // mute by default
+    video.setAttribute('muted', 'false')
     video.setAttribute('controls', '')
     document.body.appendChild(video)
     video.srcObject = stream
