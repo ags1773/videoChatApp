@@ -36,4 +36,14 @@ io.on('connection', function (socket) {
     console.log('Disconnected')
     // MAYBE?? remove socket entry from 'sockets' obj
   })
+
+  socket.on('relaySessionDescription', function (config) {
+    let peerId = config.peer_id
+    let sessionDescription = config.session_description
+    console.log(`[ ${socket.id} ] relaying session description to [ ${peerId} ]`, sessionDescription)
+
+    if (peerId in sockets) {
+      sockets[peerId].emit('sessionDescription', {'peer_id': socket.id, 'session_description': sessionDescription})
+    }
+  })
 })

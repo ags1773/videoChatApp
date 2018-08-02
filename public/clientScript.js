@@ -52,9 +52,9 @@ const init = () => {
     // Called by the WebRTC layer when events occur on the media tracks
     // on our WebRTC call. This includes when streams are added to and
     // removed from the call.
-    //
+
     // track events include the following fields:
-    //
+
     // RTCRtpReceiver       receiver
     // MediaStreamTrack     track
     // MediaStream[]        streams
@@ -79,12 +79,12 @@ const init = () => {
           console.log('Local offer description is: ', localDescription)
           peerConnection.setLocalDescription(localDescription)
             .then(() => {
-              // socket.emit('relaySessionDescription',
-              //   {
-              //     'peer_id': config.peer_id,
-              //     'session_description': localDescription
-              //   }
-              // )
+              socket.emit('relaySessionDescription',
+                {
+                  'peer_id': config.peer_id,
+                  'session_description': localDescription
+                }
+              )
               console.log('Offer setLocalDescription succeeded')
             })
             .catch(err => console.error('Offer setLocalDescription failed!', err))
@@ -100,7 +100,7 @@ const init = () => {
   // then the answerer sends one back (with type "answer").
 
   socket.on('sessionDescription', function (config) {
-
+    console.log('Remote description recieved', config)
   })
 
   socket.on('disconnect', () => {
