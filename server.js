@@ -1,10 +1,12 @@
-const port = 3000
+const port = 3000 || process.env.PORT
 const express = require('express')
 const socket = require('socket.io')
+const cors = require('cors')
 const app = express()
 const server = app.listen(port, () => console.log(`Signaling server running on port ${port}`))
 const io = socket(server)
 
+app.use(cors())
 app.use(express.static('public'))
 
 const sockets = {}

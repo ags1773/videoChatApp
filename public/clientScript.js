@@ -1,5 +1,6 @@
 // **** CONFIG ****
 const SIGNALING_SERVER = 'http://localhost:3000'
+// const SIGNALING_SERVER = 'http://192.168.0.112:3000'
 const USE_AUDIO = true
 const USE_VIDEO = true
 const ICE_SERVERS = [
