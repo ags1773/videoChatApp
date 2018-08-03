@@ -12,22 +12,21 @@ app.use(express.static('public'))
 const sockets = {}
 
 io.on('connection', function (socket) {
-  console.log('Socket connection estabilished!')
-
-  sockets[socket.id] = socket
   console.log(`${socket.id} connection accepted`)
 
+  let peer
+  sockets[socket.id] = socket
+
   socket.on('join', () => {
-    // on getting a 'join', send out an 'addPeer' event with the socket ID of the other guy
     console.log('Join event recieved')
 
-    if (Object.keys(sockets).length === 2) { // both people connected
-      // broadcast 'addPeer' for other guy to recieve, in it send own socket ID
-      // emit 'addPeer' for own client to recieve, in it send other peer's socket ID
-      // so now, own client has others socket ID, and other client has my socket ID
-      socket.broadcast.emit('addPeer', {peer_id: socket.id, should_create_offer: false})
+    if (Object.keys(sockets).length === 2) { // when both people connected
+      // emit 'addPeer', in it send peer's socket ID to client
+      // so now, both peers have each others socket ID, and one of them has to create an offer
+      peer = sockets[Object.keys(sockets).filter((id) => id !== socket.id)[0]]
+      peer.emit('addPeer', {peer_id: socket.id, should_create_offer: false})
       socket.emit('addPeer', {
-        peer_id: Object.keys(sockets).filter((id) => id !== socket.id)[0],
+        peer_id: peer.id,
         should_create_offer: true
       })
     }

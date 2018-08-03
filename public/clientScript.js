@@ -1,7 +1,7 @@
 // **** CONFIG ****
-// const SIGNALING_SERVER = 'http://localhost:3000'
+const SIGNALING_SERVER = 'http://localhost:3000'
 // const SIGNALING_SERVER = 'http://192.168.0.112:3000'
-const SIGNALING_SERVER = 'https://evening-brushlands-68381.herokuapp.com'
+// const SIGNALING_SERVER = 'https://evening-brushlands-68381.herokuapp.com'
 const USE_AUDIO = true
 const USE_VIDEO = true
 const ICE_SERVERS = [
@@ -25,6 +25,9 @@ const init = () => {
       socket.emit('join')
     })
   })
+
+  socket.on('j', () => console.log('j recieved'))
+  socket.on('k', () => console.log('k recieved'))
 
   socket.on('addPeer', (config) => {
     console.log('SignallingServer says add this peer => ', config)
