@@ -8,7 +8,8 @@ Sequence Of Events
 
 6) When B connects, steps 1,2,3,4 happen
 7) On getting B's 'join', server now has two key:value pairs in the 'sockets' object
-8) - server sends A an 'addPeer' event with {B's socket ID, should_create_offer: false}
-   - server sends B an 'addPeer' event with {A's socket ID, should_create_offer: true}
+8)  - server sends A an 'addPeer' event with {B's socket ID, should_create_offer: false}
+    - server sends B an 'addPeer' event with {A's socket ID, should_create_offer: true}
 9) A, on getting the 'addPeer' event from server, does the following:
+    - creates 'peerConnection', which is an instance of 'RTCPeerConnection'
     - 

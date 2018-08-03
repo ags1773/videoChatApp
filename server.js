@@ -34,8 +34,9 @@ io.on('connection', function (socket) {
   })
 
   socket.on('disconnect', () => {
-    console.log('Disconnected')
-    // MAYBE?? remove socket entry from 'sockets' obj
+    console.log(socket.id, 'Disconnected')
+    delete sockets[socket.id]
+    console.log('Peers left in sockets object: ', Object.keys(sockets))
   })
 
   // sends offer/answer from one peer to another

@@ -1,7 +1,7 @@
 // **** CONFIG ****
-// const SIGNALING_SERVER = 'http://localhost:3000'
+const SIGNALING_SERVER = 'http://localhost:3000'
 // const SIGNALING_SERVER = 'http://192.168.0.112:3000'
-const SIGNALING_SERVER = 'https://evening-brushlands-68381.herokuapp.com'
+// const SIGNALING_SERVER = 'https://evening-brushlands-68381.herokuapp.com'
 const USE_AUDIO = true
 const USE_VIDEO = true
 const ICE_SERVERS = [
@@ -28,19 +28,19 @@ const init = () => {
 
   socket.on('addPeer', (config) => {
     console.log('SignallingServer says add this peer => ', config)
-    // const peerId = peer.peer_id
+    const peerId = config.peer_id
     const peerConnection = new RTCPeerConnection(
       {'iceServers': ICE_SERVERS}
     )
     localMediaStream.getTracks().forEach(track => {
-      console.log('track', track)
+      console.log('Media track', track)
       peerConnection.addTrack(track, localMediaStream)
     })
-    peer[config.peer_id] = peerConnection
+    peer[peerId] = peerConnection
 
     // localDescription describes how the connection is configured
     if (config.should_create_offer) {
-      console.log('Creating RTC offer to ', config.peer_id)
+      console.log('Creating RTC offer to ', peerId)
       peerConnection.createOffer()
         .then(localDescription => {
           console.log('Local offer description is: ', localDescription)
@@ -48,7 +48,7 @@ const init = () => {
             .then(() => {
               socket.emit('relaySessionDescription',
                 {
-                  'peer_id': config.peer_id,
+                  'peer_id': peerId,
                   'session_description': localDescription
                 }
               )
@@ -64,7 +64,7 @@ const init = () => {
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit('relayICECandidate', {
-          'peer_id': config.peer_id,
+          'peer_id': peerId,
           'ice_candidate': {
             'sdpMLineIndex': event.candidate.sdpMLineIndex,
             'candidate': event.candidate.candidate
@@ -88,7 +88,7 @@ const init = () => {
       video.setAttribute('autoplay', '')
       video.setAttribute('muted', 'false')
       video.setAttribute('controls', '')
-      peerMediaElement[config.peer_id] = video
+      peerMediaElement[peerId] = video
       document.body.appendChild(video)
       video.srcObject = event.streams[0]
     }
