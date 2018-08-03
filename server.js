@@ -40,8 +40,8 @@ io.on('connection', function (socket) {
 
   // sends offer/answer from one peer to another
   socket.on('relaySessionDescription', function (config) {
-    let peerId = config.peer_id
-    let sessionDescription = config.session_description
+    let peerId = config.peer_id // recipent's socket ID
+    let sessionDescription = config.session_description // sender's sessionDescription
     console.info(`Server relaying Peer [ ${socket.id} ]'s '${sessionDescription.type}' to Peer [ ${peerId} ]`)
     if (peerId in sockets) {
       sockets[peerId].emit('sessionDescription', {'peer_id': socket.id, 'session_description': sessionDescription})

@@ -10,6 +10,43 @@ Sequence Of Events
 7) On getting B's 'join', server now has two key:value pairs in the 'sockets' object
 8)  - server sends A an 'addPeer' event with {B's socket ID, should_create_offer: false}
     - server sends B an 'addPeer' event with {A's socket ID, should_create_offer: true}
-9) A, on getting the 'addPeer' event from server, does the following:
-    - creates 'peerConnection', which is an instance of 'RTCPeerConnection'
-    - 
+
+Side Note:
+- A and B need their own and each other's media information such as resolution and codec capabilities
+- for this purpose, they use Session Description Protocol (SDP)
+- as per SDP, they have to exchange an 'offer' and an 'answer'
+
+9) A, who has (should_create_offer: false) :
+  on getting the 'addPeer' event from server, does the following:
+    - creates 'peerConnection' (instance of 'RTCPeerConnection'), will have methods to connect with the remote peer
+    - adds it's local stream (audio, video tracks) to 'peerConnection'
+    - adds following event handlers to 'peerConnection'
+      -> 'onicecandidate'
+      -> 'ontrack'
+    - sits idle, waiting for an 'offer' from peer B
+10) B, who has (should_create_offer: true), on getting 'addPeer':
+  - creates 'peerConnection'
+  - to it, adds it's local stream
+  - to it, adds a newly created 'offer'
+  - to it, adds a localDescription, which describes the media capabilities of B's machine
+  - emits a 'relaySessionDescription' event containing {A (recipent)'s socket ID, B's localDescription} 
+  - adds following event handlers to 'peerConnection'
+    -> 'onicecandidate'
+    -> 'ontrack'
+  - saves 'peerConnection' in the global variable 'peer'
+
+Side Note on 'peerConnection':
+- peerConnection contains 
+  -> data about local machine's capabilities
+  -> local audio & video
+  -> various event handlers, which are used to connect to remote peer when a local event occurs
+  -> the remote peer's socketID
+
+SDP - Session description protocol 
+  - gives all supported codecs and describes local connection
+
+ICE - Interactive connectivity estabilishment
+  - determines method with which to transmit the data
+  ICE candidate: proposes how to estabilish the P2P network (use TURN?)
+    - send multiple ICE candidates till peer runs out of suggestions
+    - once the 2 peers find a compatable candidate, media begins to flow

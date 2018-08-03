@@ -26,20 +26,16 @@ const init = () => {
     })
   })
 
-  socket.on('j', () => console.log('j recieved'))
-  socket.on('k', () => console.log('k recieved'))
-
   socket.on('addPeer', (config) => {
     console.log('SignallingServer says add this peer => ', config)
     const peerId = config.peer_id
-    const peerConnection = new RTCPeerConnection(
-      {'iceServers': ICE_SERVERS}
+    const peerConnection = new RTCPeerConnection( // 'peerConnection' will have methods to connect to remote peer
+      {'iceServers': ICE_SERVERS} // OPTIONAL list of STUN and TURN servers
     )
     localMediaStream.getTracks().forEach(track => {
       console.log('Media track', track)
       peerConnection.addTrack(track, localMediaStream)
     })
-    peer[peerId] = peerConnection
 
     // localDescription describes how the connection is configured
     if (config.should_create_offer) {
@@ -64,6 +60,7 @@ const init = () => {
         })
     }
 
+    // onicecandidate event occues when local ICE agent needs to deliver the candidate to remote
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit('relayICECandidate', {
@@ -78,12 +75,6 @@ const init = () => {
 
     // 'ontrack' is called by the WebRTC layer when events occur on the media tracks on our WebRTC call.
     // This includes when streams are added to and removed from the call.
-    // track events include the following fields:
-
-    // RTCRtpReceiver       receiver
-    // MediaStreamTrack     track
-    // MediaStream[]        streams
-    // RTCRtpTransceiver    transceiver
 
     peerConnection.ontrack = (event) => {
       console.log('ontrack (old: onAddStream) event')
@@ -95,6 +86,8 @@ const init = () => {
       document.body.appendChild(video)
       video.srcObject = event.streams[0]
     }
+
+    peer[peerId] = peerConnection
   })
 
   // Peers exchange session descriptions which contains information about their audio / video settings etc.
@@ -136,33 +129,32 @@ const init = () => {
   // The offerer will send a number of ICE Candidate blobs to the answerer so they
   // can begin trying to find the best path to one another on the net.
 
+  // On recieving an ICE candidate from remote peer, 'addIceCandidate' hands it over to browser's ICE agent
+
   socket.on('iceCandidate', function (config) {
     const remotePeer = peer[config.peer_id]
     const iceCandidate = config.ice_candidate
     remotePeer.addIceCandidate(new RTCIceCandidate(iceCandidate))
   })
-
-  socket.on('disconnect', () => {
-    console.log('disconnected')
-  })
 }
 
 // *********************** //
-// ** Local media stuff ** //
+// **    media stuff ** //
 // ***********************//
 
 function setupLocalMedia (callback) {
-  // Ask user for permission to use the computers microphone and/or camera,
-  // if .getUserMedia() is present, create a <video> element, attach it to <body>
-  // play webcam stream in it
+  // 1) if user supports getUserMedia, ask for media permission,
+  // 2) Create <video>, attach it to body, to it give webcam's stream
+  // 3) put stream in global 'localMediaStream'
+  // 4) execute callback
 
   const hasGetUserMedia = function () {
-    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) // !! (not twice) coerces object to boolean
+    // !! (not twice) if present, navigator.mediaDevices returns an object. !! coerces object to boolean
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
   }
 
   const handleSuccess = (stream) => {
-    // create <video> element, display webcam stream in it
-    console.log('Got permission for camera and/or mic')
+    console.log('Got permission for camera')
 
     localMediaStream = stream
 
@@ -173,12 +165,12 @@ function setupLocalMedia (callback) {
     document.body.appendChild(video)
     video.srcObject = stream
 
-    if (callback) callback()
+    callback()
   }
 
   const handleError = (error) => {
     if (error.name === 'PermissionDeniedError') {
-      console.log('Permissions have not been granted to use your camera and microphone')
+      console.log("Camera permission denied, app won't work")
     } else console.log(`getUserMedia error: ${error.name}`, error)
   }
 
